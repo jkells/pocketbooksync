@@ -86,9 +86,15 @@ namespace PocketBookSync
                 var config = await db.GetConfigAsync();
                 foreach (var account in config.Accounts)
                 {
-                    using (var cbaTest = new CbaExporter(account))
+                    using (var exporter = ExporterFactory.Create(account))
                     {
-                        await cbaTest.ExportRecent();
+                        Console.WriteLine($"Account: {account.AccountReference}");
+                        Console.WriteLine("==================================");
+                        foreach (var transaction in await exporter.ExportRecent())
+                        {
+                            Console.WriteLine($"{transaction.Date}: {transaction.Amount} - {transaction.Description}");
+                        }
+                        Console.WriteLine();
                     }
                 }
             }

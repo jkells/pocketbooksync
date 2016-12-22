@@ -13,7 +13,7 @@ using PocketBookSync.Data;
 
 namespace PocketBookSync.Exporters
 {
-    public sealed class CbaExporter : IDisposable
+    public sealed class CbaExporter : IDisposable, IExporter
     {
         private const string BaseUrl = "https://www.my.commbank.com.au";
         private static readonly Uri LoginUrl = new Uri(BaseUrl + "/netbank/Logon/Logon.aspx?Embedded=true");
@@ -63,24 +63,24 @@ namespace PocketBookSync.Exporters
         }
 
 
-        public async Task<IEnumerable<Transaction>> ExportRecentAsync()
+        public async Task<IEnumerable<Transaction>> ExportRecent()
         {
-            //await Login();
-            //await SelectAccount();
-            //var source = _webdriver.PageSource;
-            string source;
-            using (var fs = new StreamReader(new FileStream("test.html", FileMode.Open)))
-            {
-                source = fs.ReadToEnd();
-            }
+            await Login();
+            await SelectAccount();
+            var source = _webdriver.PageSource;
+            //string source;
+            //using (var fs = new StreamReader(new FileStream("test.html", FileMode.Open)))
+            //{
+                //source = fs.ReadToEnd();
+            //}
 
             //using (var fs = new StreamWriter(new FileStream("test.html", FileMode.Create)))
             //{
             //fs.Write(source);
             //}
-
             
-            return SelectTransactionRows(source).SelectMany(ParseTransactionRow);            
+            return SelectTransactionRows(source)
+                .SelectMany(ParseTransactionRow);            
         }
 
         private static IEnumerable<HtmlNode> SelectTransactionRows(string source)

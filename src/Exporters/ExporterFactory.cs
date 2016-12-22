@@ -1,27 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using PocketBookSync.Data;
 
 namespace PocketBookSync.Exporters
 {
-
-    public interface IExporter
-    {
-        Task<IEnumerable<Transaction>> ExportRecent(Account account);
-    }
-
     public class ExporterFactory
     {
-        public IExporter Create(string type)
+        public static IExporter Create(Account account)
         {
-            switch (type.ToLowerInvariant())
+            switch (account.Type.ToLowerInvariant())
             {
                 case "cba":
-                    return new CbaExporter();
+                    return new CbaExporter(account);
                 default:
-                    throw new ExportException($"Exporter not found for type: {type}");
+                    throw new ExportException($"Exporter not found for type: {account.Type}");
             }
         }
     }
