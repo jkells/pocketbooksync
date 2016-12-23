@@ -1,77 +1,42 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing.Imaging;
-using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
 using OpenQA.Selenium;
-using OpenQA.Selenium.PhantomJS;
 using OpenQA.Selenium.Remote;
 using PocketBookSync.Data;
 
 namespace PocketBookSync.Exporters
 {
-    public sealed class CbaExporter : IDisposable, IExporter
+    public sealed class CbaExporter : IExporter
     {
-        private const string BaseUrl = "https://www.my.commbank.com.au";
-        private static readonly Uri LoginUrl = new Uri(BaseUrl + "/netbank/Logon/Logon.aspx?Embedded=true");
-        
-        private readonly Account _account;
+        private const string LoginUrl = "https://www.my.commbank.com.au";                
         private readonly RemoteWebDriver _webdriver;
         private int _screenshot;
-
-        public CbaExporter(Account account)
-        {
-            _account = account;
-            var options = new PhantomJSOptions();
-            options.AddAdditionalCapability("phantomjs.page.settings.userAgent",
-                "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36");
-            _webdriver = new PhantomJSDriver(PhantomJSDriverService.CreateDefaultService(Directory.GetCurrentDirectory()), options);            
-        }
-
-        public void Dispose()
-        {
-            using (_webdriver)
-            {
-            }
-        }
-
-        private void TakeScreenshot()
-        {
-            _webdriver.GetScreenshot().SaveAsFile($"exporter-{_screenshot++}.png", ImageFormat.Png);
-        }
-
-        private async Task SelectAccount()
-        {
-            var accounts = _webdriver.FindElementsByClassName("main_group_account_row");
-            foreach (var webElement in accounts)
-            {
-                var link = webElement.FindElement(By.CssSelector(".NicknameField a"));
-                var accountNumber = webElement.FindElement(By.CssSelector(".AccountNumberField .field"));
-
-                if (link.Text.StartsWith(_account.AccountReference, StringComparison.OrdinalIgnoreCase) ||
-                    accountNumber.Text.StartsWith(_account.AccountReference, StringComparison.OrdinalIgnoreCase))
-                {
-                    link.Click();
-                    return;
-                }
-            }
-
-            throw new ExportException($"Account {_account.AccountReference} not found.");
+        
+        public CbaExporter(Account account, WebDriverFactory webDriverFactory)
+        {            
+            _webdriver = webDriverFactory.CreateFor(account.Type + account.Username);
         }
 
 
-        public async Task<IEnumerable<Transaction>> ExportRecent()
+        public Task<IEnumerable<Transaction>> ExportRecent(Account account)
         {
-            await Login();
-            await SelectAccount();
+            Console.WriteLine(_webdriver.Url);
+            if (!_webdriver.Url.Contains("commbank.com.au"))
+                Login(account);
+            else
+                ReturnToHome();
+            SelectAccount(account);
             var source = _webdriver.PageSource;
+            
             //string source;
             //using (var fs = new StreamReader(new FileStream("test.html", FileMode.Open)))
             //{
-                //source = fs.ReadToEnd();
+            //source = fs.ReadToEnd();
             //}
 
             //using (var fs = new StreamWriter(new FileStream("test.html", FileMode.Create)))
@@ -79,8 +44,38 @@ namespace PocketBookSync.Exporters
             //fs.Write(source);
             //}
             
-            return SelectTransactionRows(source)
-                .SelectMany(ParseTransactionRow);            
+            return Task.FromResult(SelectTransactionRows(source).SelectMany(ParseTransactionRow));
+        }
+
+        private void ReturnToHome()
+        {
+            _webdriver.FindElementByCssSelector(".nav-primary .first-child").Click();
+            TakeScreenshot();
+        }
+
+        private void TakeScreenshot()
+        {
+            _webdriver.GetScreenshot().SaveAsFile($"cba-exporter-{_screenshot++}.png", ImageFormat.Png);
+        }
+
+        private void SelectAccount(Account account)
+        {
+            var accounts = _webdriver.FindElementsByClassName("main_group_account_row");
+            foreach (var webElement in accounts)
+            {
+                var link = webElement.FindElement(By.CssSelector(".NicknameField a"));
+                var accountNumber = webElement.FindElement(By.CssSelector(".AccountNumberField .field"));
+
+                if (link.Text.StartsWith(account.AccountReference, StringComparison.OrdinalIgnoreCase) ||
+                    accountNumber.Text.StartsWith(account.AccountReference, StringComparison.OrdinalIgnoreCase))
+                {
+                    link.Click();
+                    TakeScreenshot();
+                    return;
+                }
+            }
+
+            throw new ExportException($"Account {account.AccountReference} not found.");
         }
 
         private static IEnumerable<HtmlNode> SelectTransactionRows(string source)
@@ -96,18 +91,19 @@ namespace PocketBookSync.Exporters
             if (descriptionNode == null)
                 yield break;
 
-            Transaction transaction = new Transaction();
+            var transaction = new Transaction();
             try
             {
                 descriptionNode.SelectNodes("./i")?.FirstOrDefault()?.Remove();
-                transaction.Description = Regex.Replace(descriptionNode.InnerText, @"[\s-]+", " ", RegexOptions.Multiline);
+                transaction.Description = Regex.Replace(descriptionNode.InnerText, @"[\s-]+", " ",
+                    RegexOptions.Multiline);
 
                 if (transaction.Description.StartsWith("PENDING", StringComparison.OrdinalIgnoreCase))
                 {
                     transaction.Description = transaction.Description.Substring(8);
                     transaction.Pending = true;
                 }
-                
+
                 var dateNode = row.SelectSingleNode(".//td[contains(@class, 'date')]");
                 dateNode.SelectNodes("./em")?.FirstOrDefault()?.Remove();
                 var date = dateNode.InnerText.Trim();
@@ -116,7 +112,6 @@ namespace PocketBookSync.Exporters
                 var ammountNode = row.SelectSingleNode(".//td[contains(@class, 'amount')]");
                 var ammount = ammountNode.InnerText.Replace("$", "");
                 transaction.Amount = decimal.Parse(ammount);
-
             }
             catch (Exception ex)
             {
@@ -127,16 +122,16 @@ namespace PocketBookSync.Exporters
             yield return transaction;
         }
 
-        private async Task Login()
+        private void Login(Account account)
         {
-            _webdriver.Url = BaseUrl;
+            _webdriver.Url = LoginUrl;
             _webdriver.Navigate();
             TakeScreenshot();
             var clientNumberField = _webdriver.FindElementByName("txtMyClientNumber$field");
             var passwordField = _webdriver.FindElementByName("txtMyPassword$field");
             var loginButton = _webdriver.FindElementByName("btnLogon$field");
-            clientNumberField.SendKeys(_account.Username);
-            passwordField.SendKeys(_account.Password);
+            clientNumberField.SendKeys(account.Username);
+            passwordField.SendKeys(account.Password);
             loginButton.Click();
             TakeScreenshot();
         }

@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using PocketBookSync.Data;
 
 namespace PocketBookSync.Exporters
 {
-    public interface IExporter : IDisposable
+    public interface IExporter
     {
-        Task<IEnumerable<Transaction>> ExportRecent();
+        Task<IEnumerable<Transaction>> ExportRecent(Account account);
     }
 }
