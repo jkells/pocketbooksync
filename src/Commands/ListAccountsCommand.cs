@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.Extensions.CommandLineUtils;
 using PocketBookSync.Data;
+using System.Linq;
 
 namespace PocketBookSync.Commands
 {
@@ -21,14 +22,15 @@ namespace PocketBookSync.Commands
         }
 
         public static async Task ListAccountsAsync()
-        {
+        {         
             using (var db = new AppDbContext())
             {
                 await Migrations.MigrateAsync(db);
                 var config = await db.GetConfigAsync();
-
+               
                 foreach (var account in config.Accounts)
                 {
+                    Console.WriteLine($"Id:                         {account.Id}");
                     Console.WriteLine($"Type:                       {account.Type}");
                     Console.WriteLine($"Account Reference:          {account.AccountReference}");
                     Console.WriteLine($"Pocket Book Account Number: {account.PocketBookAccountNumber}");

@@ -1,11 +1,14 @@
 {
   "version": "1.0.0-*",
+  "testRunner": "xunit",
   "buildOptions": {
     "debugType": "portable",
     "emitEntryPoint": true,
     "copyToOutput": "phantomjs.exe"
   },
   "dependencies": {
+    "xunit": "2.2.0-beta4-build3444",
+    "dotnet-test-xunit": "2.2.0-preview2-build1029",
     "Microsoft.Extensions.PlatformAbstractions": "1.1.0",
     "System.Net.Http": "4.3.0",
     "System.Security.Cryptography.ProtectedData": "4.3.0",
@@ -13,7 +16,7 @@
     "Newtonsoft.Json": "9.0.1",
     "Microsoft.Extensions.CommandLineUtils": "1.1.0",
     "Microsoft.EntityFrameworkCore.SQLite": "1.1.0",
-    "CoreCompat.Selenium.WebDriver":  "2.54.0-beta002"
+    "CoreCompat.Selenium.WebDriver": "2.54.0-beta002"
   },
   "frameworks": {
     "netcoreapp1.1": {

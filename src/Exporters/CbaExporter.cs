@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -13,38 +14,58 @@ namespace PocketBookSync.Exporters
 {
     public sealed class CbaExporter : IExporter
     {
-        private const string LoginUrl = "https://www.my.commbank.com.au";                
+        private const string LoginUrl = "https://www.my.commbank.com.au";
         private readonly RemoteWebDriver _webdriver;
         private int _screenshot;
-        
+
         public CbaExporter(Account account, WebDriverFactory webDriverFactory)
-        {            
+        {
             _webdriver = webDriverFactory.CreateFor(account.Type + account.Username);
         }
 
-
         public Task<IEnumerable<Transaction>> ExportRecent(Account account)
         {
-            Console.WriteLine(_webdriver.Url);
+            return Mock(account);
+
             if (!_webdriver.Url.Contains("commbank.com.au"))
                 Login(account);
             else
                 ReturnToHome();
             SelectAccount(account);
             var source = _webdriver.PageSource;
-            
-            //string source;
-            //using (var fs = new StreamReader(new FileStream("test.html", FileMode.Open)))
-            //{
-            //source = fs.ReadToEnd();
-            //}
 
-            //using (var fs = new StreamWriter(new FileStream("test.html", FileMode.Create)))
-            //{
-            //fs.Write(source);
-            //}
-            
-            return Task.FromResult(SelectTransactionRows(source).SelectMany(ParseTransactionRow));
+            return Task.FromResult(SelectTransactionRows(source).SelectMany(row => ParseTransactionRow(account, row)));
+        }
+
+
+        /// <summary>
+        /// For testing
+        /// </summary>
+        private Task<IEnumerable<Transaction>> Mock(Account account)
+        {
+            var filename = $"{account.AccountReference}.html";
+            //if (account.AccountReference.StartsWith("Master"))
+                //filename = "test.html";
+            string source;
+            if (File.Exists($"{account.AccountReference}.html"))
+            {
+                using (var fs = new StreamReader(new FileStream(filename, FileMode.Open)))
+                {
+                    source = fs.ReadToEnd();
+                }
+            }
+            else
+            {
+                Login(account);
+                SelectAccount(account);
+                source = _webdriver.PageSource;
+
+                using (var fs = new StreamWriter(new FileStream(filename, FileMode.Create)))
+                {
+                    fs.Write(source);
+                }
+            }
+            return Task.FromResult(SelectTransactionRows(source).SelectMany(row => ParseTransactionRow(account, row)));
         }
 
         private void ReturnToHome()
@@ -85,15 +106,17 @@ namespace PocketBookSync.Exporters
             return document.DocumentNode.SelectNodes("//table[contains(@class, 'cba_transactions_table')]/tbody/tr");
         }
 
-        private static IEnumerable<Transaction> ParseTransactionRow(HtmlNode row)
+        private static IEnumerable<Transaction> ParseTransactionRow(Account account, HtmlNode row)
         {
-            var descriptionNode = row.SelectSingleNode(".//span[contains(@class, 'merchant')]//a");
+            var descriptionNode = row.SelectSingleNode(".//span[contains(@class, 'merchant')]");
             if (descriptionNode == null)
                 yield break;
 
             var transaction = new Transaction();
             try
             {
+                transaction.AccountId = account.Id;
+
                 descriptionNode.SelectNodes("./i")?.FirstOrDefault()?.Remove();
                 transaction.Description = Regex.Replace(descriptionNode.InnerText, @"[\s-]+", " ",
                     RegexOptions.Multiline);

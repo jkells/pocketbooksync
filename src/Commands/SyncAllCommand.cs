@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.CommandLineUtils;
 using PocketBookSync.Data;
@@ -33,18 +35,24 @@ namespace PocketBookSync.Commands
                 {
                     foreach (var account in config.Accounts)
                     {
-                        Console.WriteLine($"Account: {account.AccountReference}");
-                        Console.WriteLine("==================================");
                         var exporter = factory.Create(account);
-                        foreach (var transaction in await exporter.ExportRecent(account))
+                        var currentTransactions = (await exporter.ExportRecent(account)).ToList();
+                        if (!currentTransactions.Any())
+                            continue;
+
+                        var dates = currentTransactions.Select(x => x.Date);
+                        var existingTransactions = db.GetTransactionsForDates(account, dates);
+                        var toAdd = Synchronizer.Synchronize(currentTransactions, existingTransactions);
+
+                        Console.WriteLine($"Account: {account.AccountReference}, {existingTransactions.Count()}, {currentTransactions.Count}, {toAdd.Count()}");
+                        foreach (var transaction in toAdd)
                         {
-                            Console.WriteLine($"{transaction.Date}: {transaction.Amount} - {transaction.Description}");
+                            await db.Transactions.AddAsync(transaction);
                         }
-                        Console.WriteLine();
+                        await db.SaveChangesAsync();
                     }
                 }
             }
-            Console.ReadKey();
         }
     }
 }

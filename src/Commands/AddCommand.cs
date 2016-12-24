@@ -72,10 +72,15 @@ namespace PocketBookSync.Commands
                     return;
                 }
 
+                int nextId = 1;
+                if(config.Accounts.Any())
+                    nextId = config.Accounts.Max(x => x.Id) + 1;
+
                 config.Accounts = config.Accounts.Concat(new[]
                 {
                     new Account
                     {
+                        Id = nextId,
                         Username = clientNumber,
                         AccountReference = accountReference,
                         PocketBookAccountNumber = pocketBookAccountNumber,
