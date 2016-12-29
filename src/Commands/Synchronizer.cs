@@ -19,9 +19,9 @@ namespace PocketBookSync.Commands
 
             var dates = currentTransactions.Select(x => x.Date);
             var existingTransactions = db.Transactions.Where(t => t.AccountId == account.Id && dates.Contains(t.Date));
-            var toAdd = FindNewTransactions(currentTransactions, existingTransactions);
+            var toAdd = FindNewTransactions(currentTransactions, existingTransactions).ToList();
 
-            Log($"{existingTransactions} already exist, {toAdd} new transactions found");
+            Log($"{existingTransactions.Count()} already exist, {toAdd.Count()} new transactions found");
 
             foreach (var transaction in toAdd)
             {

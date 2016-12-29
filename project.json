@@ -21,12 +21,16 @@
   "frameworks": {
     "netcoreapp1.1": {
       "dependencies": {
-        "Microsoft.NETCore.App": {
-          "type": "platform",
+        "Microsoft.NETCore.App": {          
           "version": "1.1.0"
         }
       },
       "imports": "dnxcore50"
     }
+  },
+  "runtimes": {
+    "win": {},
+    "win7-x64": {},
+    "win7-x86": {}
   }
 }

@@ -29,6 +29,7 @@ namespace PocketBookSync.Exporters
                 Description = Description.Substring(8);
                 IsPending = true;
             }
+            IsValid = true;
         }
 
         public bool IsPending { get; private set; }
