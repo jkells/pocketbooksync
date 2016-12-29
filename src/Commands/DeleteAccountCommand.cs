@@ -33,10 +33,10 @@ namespace PocketBookSync.Commands
         {
             using (var db = new AppDbContext())
             {
-                await Migrations.MigrateAsync(db);
-                var config = await db.GetConfigAsync();
-                config.Accounts = config.Accounts.Where(x => x.AccountReference != accountReference);
-                await db.SetConfigAsync(config);
+                await Migrations.MigrateAsync(db);                
+                var account = db.Accounts.FirstOrDefault(x => x.AccountReference != accountReference);
+                if (account != null)
+                    db.Remove(account);                
                 await db.SaveChangesAsync();
             }
         }

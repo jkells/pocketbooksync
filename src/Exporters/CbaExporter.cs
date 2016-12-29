@@ -1,9 +1,11 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
 using OpenQA.Selenium;
@@ -23,31 +25,41 @@ namespace PocketBookSync.Exporters
             _webdriver = webDriverFactory.CreateFor(account.Type + account.Username);
         }
 
-        public Task<IEnumerable<Transaction>> ExportRecent(Account account)
+        public Task<IEnumerable<Transaction>> ExportRecentAsync(Account account)
         {
-            return Mock(account);
+            //return MockAsync(account);
 
             if (!_webdriver.Url.Contains("commbank.com.au"))
+            {
                 Login(account);
+                Log("Logged in");
+            }
             else
+            {
                 ReturnToHome();
-            SelectAccount(account);
-            var source = _webdriver.PageSource;
+                Log("Navigated home");
+            }
 
-            return Task.FromResult(SelectTransactionRows(source).SelectMany(row => ParseTransactionRow(account, row)));
+            SelectAccount(account);
+            Log($"Selected Account {account.AccountReference}");
+            var source = _webdriver.PageSource;
+            var transactions = SelectTransactionRows(source).SelectMany(row => ParseTransactionRow(account, row)).ToList();
+            Log($"Read {transactions.Count} transactions");
+
+            return Task.FromResult((IEnumerable<Transaction>)transactions);
         }
 
 
         /// <summary>
         /// For testing
         /// </summary>
-        private Task<IEnumerable<Transaction>> Mock(Account account)
+        private Task<IEnumerable<Transaction>> MockAsync(Account account)
         {
-            var filename = $"{account.AccountReference}.html";
+            var filename = Path.Combine(DataPath.Path, $"{account.AccountReference}.html");
             //if (account.AccountReference.StartsWith("Master"))
                 //filename = "test.html";
             string source;
-            if (File.Exists($"{account.AccountReference}.html"))
+            if (File.Exists(filename))
             {
                 using (var fs = new StreamReader(new FileStream(filename, FileMode.Open)))
                 {
@@ -76,7 +88,8 @@ namespace PocketBookSync.Exporters
 
         private void TakeScreenshot()
         {
-            _webdriver.GetScreenshot().SaveAsFile($"cba-exporter-{_screenshot++}.png", ImageFormat.Png);
+            var filename = Path.Combine(DataPath.Path, $"cba-exporter-{_screenshot++}.png");
+            _webdriver.GetScreenshot().SaveAsFile(filename, ImageFormat.Png);
         }
 
         private void SelectAccount(Account account)
@@ -90,13 +103,12 @@ namespace PocketBookSync.Exporters
                 if (link.Text.StartsWith(account.AccountReference, StringComparison.OrdinalIgnoreCase) ||
                     accountNumber.Text.StartsWith(account.AccountReference, StringComparison.OrdinalIgnoreCase))
                 {
-                    link.Click();
-                    TakeScreenshot();
+                    link.Click();                    
                     return;
                 }
             }
 
-            throw new ExportException($"Account {account.AccountReference} not found.");
+            throw new AppException($"Account {account.AccountReference} not found.");
         }
 
         private static IEnumerable<HtmlNode> SelectTransactionRows(string source)
@@ -117,9 +129,9 @@ namespace PocketBookSync.Exporters
             {
                 transaction.AccountId = account.Id;
 
-                descriptionNode.SelectNodes("./i")?.FirstOrDefault()?.Remove();
-                transaction.Description = Regex.Replace(descriptionNode.InnerText, @"[\s-]+", " ",
-                    RegexOptions.Multiline);
+                descriptionNode.SelectNodes(".//i")?.FirstOrDefault()?.Remove();
+                transaction.Description = Regex.Replace(descriptionNode.InnerText, @"[\s-]+", " ", RegexOptions.Multiline);
+                transaction.Description = transaction.Description.Replace("\r", "").Replace("\n", " ");
 
                 if (transaction.Description.StartsWith("PENDING", StringComparison.OrdinalIgnoreCase))
                 {
@@ -128,7 +140,7 @@ namespace PocketBookSync.Exporters
                 }
 
                 var dateNode = row.SelectSingleNode(".//td[contains(@class, 'date')]");
-                dateNode.SelectNodes("./em")?.FirstOrDefault()?.Remove();
+                dateNode.SelectNodes(".//em")?.FirstOrDefault()?.Remove();
                 var date = dateNode.InnerText.Trim();
                 transaction.Date = DateTime.Parse(date);
 
@@ -146,7 +158,7 @@ namespace PocketBookSync.Exporters
         }
 
         private void Login(Account account)
-        {
+        {            
             _webdriver.Url = LoginUrl;
             _webdriver.Navigate();
             TakeScreenshot();
@@ -155,8 +167,13 @@ namespace PocketBookSync.Exporters
             var loginButton = _webdriver.FindElementByName("btnLogon$field");
             clientNumberField.SendKeys(account.Username);
             passwordField.SendKeys(account.Password);
-            loginButton.Click();
-            TakeScreenshot();
+            loginButton.Click();            
+            TakeScreenshot();            
+        }
+
+        private static void Log(string message)
+        {
+            Console.WriteLine($"CBAExporter:        {message}");
         }
     }
 }

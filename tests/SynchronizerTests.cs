@@ -19,7 +19,7 @@ namespace PocketBookSync.tests
                 new Transaction {AccountId = 1, Amount = 6, Date = date, Description = "Transaction 3"}
             };
 
-            var newTransactions = Synchronizer.Synchronize(currentTransactions, new Transaction[0]);
+            var newTransactions = Synchronizer.FindNewTransactions(currentTransactions, new Transaction[0]);
             Assert.Equal(3, newTransactions.Count());
         }
 
@@ -41,7 +41,7 @@ namespace PocketBookSync.tests
             };
 
 
-            var newTransactions = Synchronizer.Synchronize(currentTransactions, existingTransactions);
+            var newTransactions = Synchronizer.FindNewTransactions(currentTransactions, existingTransactions);
             Assert.Equal(0, newTransactions.Count());
         }
 
@@ -65,7 +65,7 @@ namespace PocketBookSync.tests
             };
 
 
-            var newTransactions = Synchronizer.Synchronize(currentTransactions, existingTransactions);
+            var newTransactions = Synchronizer.FindNewTransactions(currentTransactions, existingTransactions);
             Assert.Equal(2, newTransactions.Count());
             Assert.Equal(1, newTransactions.Count(x => x.Amount == 7));
             Assert.Equal(1, newTransactions.Count(x => x.Amount == 8));
@@ -86,7 +86,7 @@ namespace PocketBookSync.tests
             };
 
 
-            var newTransactions = Synchronizer.Synchronize(currentTransactions, existingTransactions);
+            var newTransactions = Synchronizer.FindNewTransactions(currentTransactions, existingTransactions);
             Assert.Equal(1, newTransactions.Count());            
         }
 
@@ -111,7 +111,7 @@ namespace PocketBookSync.tests
                 new Transaction {AccountId = 1, Amount = 5, Date = date, Description = "Netflix"},
             };
             
-            var newTransactions = Synchronizer.Synchronize(currentTransactions, existingTransactions);
+            var newTransactions = Synchronizer.FindNewTransactions(currentTransactions, existingTransactions);
             Assert.Equal(1, newTransactions.Count());
             Assert.Equal("Stan", newTransactions.First().Description);
         }

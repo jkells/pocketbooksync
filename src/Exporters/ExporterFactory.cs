@@ -26,7 +26,7 @@ namespace PocketBookSync.Exporters
                 case "cba":
                     return new CbaExporter(account, _webDriverFactory);
                 default:
-                    throw new ExportException($"Exporter not found for type: {account.Type}");
+                    throw new AppException($"Exporter not found for type: {account.Type}");
             }
         }
     }

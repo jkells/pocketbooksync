@@ -6,6 +6,6 @@ namespace PocketBookSync.Exporters
 {
     public interface IExporter
     {
-        Task<IEnumerable<Transaction>> ExportRecent(Account account);
+        Task<IEnumerable<Transaction>> ExportRecentAsync(Account account);
     }
 }

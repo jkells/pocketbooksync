@@ -28,7 +28,7 @@ namespace PocketBookSync.Commands
                 await Migrations.MigrateAsync(db);
                 var config = await db.GetConfigAsync();
                
-                foreach (var account in config.Accounts)
+                foreach (var account in db.Accounts)
                 {
                     Console.WriteLine($"Id:                         {account.Id}");
                     Console.WriteLine($"Type:                       {account.Type}");

@@ -31,7 +31,8 @@ namespace PocketBookSync.Commands
 
                     Console.WriteLine("Enter Password: ");
                     var password = ReadPassword();
-                    AddAccountAsync(clientNumber.Value(), password, accountReference.Value(), pocketBookAccountNumber.Value(), type.Value()).Wait();
+                    AddAccountAsync(clientNumber.Value(), password, accountReference.Value(),
+                        pocketBookAccountNumber.Value(), type.Value()).Wait();
                     return 0;
                 });
             });
@@ -65,31 +66,21 @@ namespace PocketBookSync.Commands
             using (var db = new AppDbContext())
             {
                 await Migrations.MigrateAsync(db);
-                var config = await db.GetConfigAsync();
-                if (config.Accounts.Any(x => x.AccountReference == accountReference))
+                if (db.Accounts.Any(x => x.AccountReference == accountReference))
                 {
                     Console.WriteLine("Account already added");
                     return;
                 }
 
-                int nextId = 1;
-                if(config.Accounts.Any())
-                    nextId = config.Accounts.Max(x => x.Id) + 1;
-
-                config.Accounts = config.Accounts.Concat(new[]
+                var account = new Account
                 {
-                    new Account
-                    {
-                        Id = nextId,
-                        Username = clientNumber,
-                        AccountReference = accountReference,
-                        PocketBookAccountNumber = pocketBookAccountNumber,
-                        Password = password,
-                        Type = type
-                    }
-                });
-
-                await db.SetConfigAsync(config);
+                    Username = clientNumber,
+                    AccountReference = accountReference,
+                    PocketBookAccountNumber = pocketBookAccountNumber,
+                    Password = password,
+                    Type = type
+                };
+                await db.AddAsync(account);
                 await db.SaveChangesAsync();
             }
         }

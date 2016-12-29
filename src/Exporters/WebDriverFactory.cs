@@ -33,6 +33,8 @@ namespace PocketBookSync.Exporters
             if (_drivers.ContainsKey(key))
                 return _drivers[key];
 
+            Log("Creating browser");
+
             RemoteWebDriver driver;
             if (_useChrome)
             {
@@ -43,13 +45,18 @@ namespace PocketBookSync.Exporters
                 var options = new PhantomJSOptions();
                 options.AddAdditionalCapability("phantomjs.page.settings.userAgent",
                     "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36");
-                driver =
-                    new PhantomJSDriver(PhantomJSDriverService.CreateDefaultService(Directory.GetCurrentDirectory()),
-                        options);
+                var service = PhantomJSDriverService.CreateDefaultService(Directory.GetCurrentDirectory());
+                service.HideCommandPromptWindow = true;
+                driver = new PhantomJSDriver(service, options);                
             }
 
             _drivers[key] = driver;
             return _drivers[key];
+        }
+
+        private static void Log(string message)
+        {
+            Console.WriteLine($"WebDriverFactory:   {message}");
         }
     }
 }

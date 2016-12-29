@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.Extensions.CommandLineUtils;
 using PocketBookSync.Data;
 using PocketBookSync.Exporters;
+using PocketBookSync.PocketBook;
 
 namespace PocketBookSync.Commands
 {
@@ -15,43 +13,54 @@ namespace PocketBookSync.Commands
             application.Command("sync", c =>
             {
                 var useChrome = c.Option("--use-chrome", "Use chrome instead of PhantomJS", CommandOptionType.NoValue);
+                var noDownload = c.Option("--no-download", "Skip downloading new transactions from the bank",
+                    CommandOptionType.NoValue);
+                var noUpload = c.Option("--no-upload", "Skip uploading new transactions to PocketBook",
+                    CommandOptionType.NoValue);
                 c.Description = "Sync all bank accounts";
                 c.OnExecute(() =>
                 {
-                    SyncAllAccountsAsync(useChrome.HasValue()).Wait();
+                    SyncAllAccountsAsync(useChrome.HasValue(), noDownload.HasValue(), noUpload.HasValue()).Wait();
                     return 0;
                 });
             });
         }
 
-        public static async Task SyncAllAccountsAsync(bool useChrome)
+        public static async Task SyncAllAccountsAsync(bool useChrome, bool noDownload, bool noUpload)
+        {
+            if (!noDownload)
+                await DownloadAsync(useChrome);
+
+            if (!noUpload)
+                await UploadAsync();
+        }
+
+        private static async Task UploadAsync()
+        {
+            using (var db = new AppDbContext())
+            {
+                var uploader = new PocketBookUploader(db);
+                foreach (var account in db.Accounts)
+                {
+                    await uploader.UploadAsync(account);
+                }
+                await db.SaveChangesAsync();
+            }
+        }
+
+        private static async Task DownloadAsync(bool useChrome)
         {
             using (var db = new AppDbContext())
             {
                 await Migrations.MigrateAsync(db);
-                var config = await db.GetConfigAsync();
-
                 using (var factory = new ExporterFactory(useChrome))
                 {
-                    foreach (var account in config.Accounts)
+                    foreach (var account in db.Accounts)
                     {
-                        var exporter = factory.Create(account);
-                        var currentTransactions = (await exporter.ExportRecent(account)).ToList();
-                        if (!currentTransactions.Any())
-                            continue;
-
-                        var dates = currentTransactions.Select(x => x.Date);
-                        var existingTransactions = db.GetTransactionsForDates(account, dates);
-                        var toAdd = Synchronizer.Synchronize(currentTransactions, existingTransactions);
-
-                        Console.WriteLine($"Account: {account.AccountReference}, {existingTransactions.Count()}, {currentTransactions.Count}, {toAdd.Count()}");
-                        foreach (var transaction in toAdd)
-                        {
-                            await db.Transactions.AddAsync(transaction);
-                        }
-                        await db.SaveChangesAsync();
+                        await Synchronizer.SynchronizeAccountAsync(db, factory, account);
                     }
                 }
+                await db.SaveChangesAsync();
             }
         }
     }
