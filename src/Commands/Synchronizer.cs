@@ -4,6 +4,7 @@ using PocketBookSync.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using PocketBookSync.Exporters;
+using Xunit;
 
 namespace PocketBookSync.Commands
 {
@@ -19,6 +20,8 @@ namespace PocketBookSync.Commands
             var dates = currentTransactions.Select(x => x.Date);
             var existingTransactions = db.Transactions.Where(t => t.AccountId == account.Id && dates.Contains(t.Date));
             var toAdd = FindNewTransactions(currentTransactions, existingTransactions);
+
+            Log($"{existingTransactions} already exist, {toAdd} new transactions found");
 
             foreach (var transaction in toAdd)
             {
@@ -69,6 +72,10 @@ namespace PocketBookSync.Commands
             }
 
             return newTransactions;
-        }        
+        }
+        private static void Log(string message)
+        {
+            Console.WriteLine($"Synchronizer:       {message}");
+        }
     }
 }

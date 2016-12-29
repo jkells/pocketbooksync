@@ -2,7 +2,7 @@
   "profiles": {
     "cba-pocketbook-net": {
       "commandName": "Project",
-      "commandLineArgs": "sync --no-download"
+      "commandLineArgs": "sync "
     }
   }
 }
