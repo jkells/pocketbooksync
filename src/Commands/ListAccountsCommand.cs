@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using Microsoft.Extensions.CommandLineUtils;
 using PocketBookSync.Data;
-using System.Linq;
 
 namespace PocketBookSync.Commands
 {
@@ -22,12 +21,12 @@ namespace PocketBookSync.Commands
         }
 
         public static async Task ListAccountsAsync()
-        {         
+        {
             using (var db = new AppDbContext())
             {
                 await Migrations.MigrateAsync(db);
                 var config = await db.GetConfigAsync();
-               
+
                 foreach (var account in db.Accounts)
                 {
                     Console.WriteLine($"Id:                         {account.Id}");

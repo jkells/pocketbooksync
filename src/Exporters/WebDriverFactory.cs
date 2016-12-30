@@ -47,7 +47,7 @@ namespace PocketBookSync.Exporters
                     "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36");
                 var service = PhantomJSDriverService.CreateDefaultService(Directory.GetCurrentDirectory());
                 service.HideCommandPromptWindow = true;
-                driver = new PhantomJSDriver(service, options);                
+                driver = new PhantomJSDriver(service, options);
             }
 
             _drivers[key] = driver;

@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 
 namespace PocketBookSync
 {
     /// <summary>
-    /// Simple inefficient function for comparing transaction descriptions using pairs of characters.
+    ///     Simple inefficient function for comparing transaction descriptions using pairs of characters.
     /// </summary>
     public static class Similar
     {

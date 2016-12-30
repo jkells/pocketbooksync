@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Linq;
 using PocketBookSync.Commands;
 using PocketBookSync.Data;
 using Xunit;
+using Enumerable = System.Linq.Enumerable;
 
 namespace PocketBookSync.tests
 {
@@ -20,7 +20,7 @@ namespace PocketBookSync.tests
             };
 
             var newTransactions = Synchronizer.FindNewTransactions(currentTransactions, new Transaction[0]);
-            Assert.Equal(3, newTransactions.Count());
+            Assert.Equal(3, Enumerable.Count(newTransactions));
         }
 
         [Fact]
@@ -42,7 +42,7 @@ namespace PocketBookSync.tests
 
 
             var newTransactions = Synchronizer.FindNewTransactions(currentTransactions, existingTransactions);
-            Assert.Equal(0, newTransactions.Count());
+            Assert.Equal(0, Enumerable.Count(newTransactions));
         }
 
         [Fact]
@@ -65,7 +65,8 @@ namespace PocketBookSync.tests
             };
 
 
-            var newTransactions = Synchronizer.FindNewTransactions(currentTransactions, existingTransactions);
+            var newTransactions =
+                Enumerable.ToList(Synchronizer.FindNewTransactions(currentTransactions, existingTransactions));
             Assert.Equal(2, newTransactions.Count());
             Assert.Equal(1, newTransactions.Count(x => x.Amount == 7));
             Assert.Equal(1, newTransactions.Count(x => x.Amount == 8));
@@ -78,16 +79,22 @@ namespace PocketBookSync.tests
             var date = DateTime.UtcNow;
             var currentTransactions = new[]
             {
-                new Transaction {AccountId = 1, Amount = 5, Date = date, Description = "Transaction 1"},
+                new Transaction {AccountId = 1, Amount = 5, Date = date, Description = "Transaction 1"}
             };
             var existingTransactions = new[]
             {
-                new Transaction {AccountId = 1, Amount = 5, Date = date.Subtract(TimeSpan.FromDays(2)), Description = "Transaction 1"},                
+                new Transaction
+                {
+                    AccountId = 1,
+                    Amount = 5,
+                    Date = date.Subtract(TimeSpan.FromDays(2)),
+                    Description = "Transaction 1"
+                }
             };
 
 
             var newTransactions = Synchronizer.FindNewTransactions(currentTransactions, existingTransactions);
-            Assert.Equal(1, newTransactions.Count());            
+            Assert.Equal(1, Enumerable.Count(newTransactions));
         }
 
         [Fact]
@@ -95,12 +102,18 @@ namespace PocketBookSync.tests
         {
             var date = DateTime.UtcNow;
             var currentTransactions = new[]
-{
+            {
                 new Transaction {AccountId = 1, Amount = 5, Date = date, Description = "Transaction 1"},
-                new Transaction {AccountId = 1, Amount = 5, Date = date, Description = "Transaction 2 - Now with more info"},
+                new Transaction
+                {
+                    AccountId = 1,
+                    Amount = 5,
+                    Date = date,
+                    Description = "Transaction 2 - Now with more info"
+                },
                 new Transaction {AccountId = 1, Amount = 5, Date = date, Description = "Transact i on 3 // 220"},
                 new Transaction {AccountId = 1, Amount = 5, Date = date, Description = "Netflix Pty ltd"},
-                new Transaction {AccountId = 1, Amount = 5, Date = date, Description = "Stan"},
+                new Transaction {AccountId = 1, Amount = 5, Date = date, Description = "Stan"}
             };
 
             var existingTransactions = new[]
@@ -108,12 +121,13 @@ namespace PocketBookSync.tests
                 new Transaction {AccountId = 1, Amount = 5, Date = date, Description = "Transaction 1"},
                 new Transaction {AccountId = 1, Amount = 5, Date = date, Description = "Transaction 2"},
                 new Transaction {AccountId = 1, Amount = 5, Date = date, Description = "Transaction 3"},
-                new Transaction {AccountId = 1, Amount = 5, Date = date, Description = "Netflix"},
+                new Transaction {AccountId = 1, Amount = 5, Date = date, Description = "Netflix"}
             };
-            
-            var newTransactions = Synchronizer.FindNewTransactions(currentTransactions, existingTransactions);
+
+            var newTransactions =
+                Enumerable.ToList(Synchronizer.FindNewTransactions(currentTransactions, existingTransactions));
             Assert.Equal(1, newTransactions.Count());
-            Assert.Equal("Stan", newTransactions.First().Description);
+            Assert.Equal((string) "Stan", (string) newTransactions.First().Description);
         }
     }
 }

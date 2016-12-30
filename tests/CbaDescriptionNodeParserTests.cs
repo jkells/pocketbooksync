@@ -30,7 +30,7 @@ namespace PocketBookSync.tests
             document.LoadHtml(html);
 
             var parser = new CbaDescriptionNodeParser(document.DocumentNode);
-            
+
             Assert.Equal(false, parser.IsValid);
         }
 

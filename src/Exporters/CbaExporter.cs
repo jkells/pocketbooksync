@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
 using OpenQA.Selenium;
@@ -122,7 +121,7 @@ namespace PocketBookSync.Exporters
         {
             var descriptionNodeParser = new CbaDescriptionNodeParser(row);
 
-            if(!descriptionNodeParser.IsValid)
+            if (!descriptionNodeParser.IsValid)
                 yield break;
 
             var transaction = new Transaction();

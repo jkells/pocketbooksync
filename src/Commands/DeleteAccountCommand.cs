@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.Extensions.CommandLineUtils;
 using PocketBookSync.Data;
 
@@ -33,10 +32,10 @@ namespace PocketBookSync.Commands
         {
             using (var db = new AppDbContext())
             {
-                await Migrations.MigrateAsync(db);                
+                await Migrations.MigrateAsync(db);
                 var account = db.Accounts.FirstOrDefault(x => x.AccountReference != accountReference);
                 if (account != null)
-                    db.Remove(account);                
+                    db.Remove(account);
                 await db.SaveChangesAsync();
             }
         }

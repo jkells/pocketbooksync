@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using PocketBookSync.Data;
 using System.Linq;
 using System.Threading.Tasks;
+using PocketBookSync.Data;
 using PocketBookSync.Exporters;
-using Xunit;
+using Enumerable = System.Linq.Enumerable;
 
 namespace PocketBookSync.Commands
 {
@@ -13,12 +13,13 @@ namespace PocketBookSync.Commands
         public static async Task SynchronizeAccountAsync(AppDbContext db, ExporterFactory factory, Account account)
         {
             var exporter = factory.Create(account);
-            var currentTransactions = (await exporter.ExportRecentAsync(account)).ToList();
+            var currentTransactions = Enumerable.ToList((await exporter.ExportRecentAsync(account)));
             if (!currentTransactions.Any())
                 return;
 
             var dates = currentTransactions.Select(x => x.Date);
-            var existingTransactions = db.Transactions.Where(t => t.AccountId == account.Id && dates.Contains(t.Date));
+            var existingTransactions =
+                db.Transactions.Where(t => t.AccountId == account.Id && Enumerable.Contains<DateTime>(dates, t.Date));
             var toAdd = FindNewTransactions(currentTransactions, existingTransactions).ToList();
 
             Log($"{existingTransactions.Count()} already exist, {toAdd.Count()} new transactions found");
@@ -26,14 +27,15 @@ namespace PocketBookSync.Commands
             foreach (var transaction in toAdd)
             {
                 await db.Transactions.AddAsync(transaction);
-            }            
+            }
         }
 
-        public static IEnumerable<Transaction> FindNewTransactions(IEnumerable<Transaction> currentTransactions, IEnumerable<Transaction> existingTransactions)
+        public static IEnumerable<Transaction> FindNewTransactions(IEnumerable<Transaction> currentTransactions,
+            IEnumerable<Transaction> existingTransactions)
         {
             var newTransactions = new List<Transaction>();
-            var ctGroups = currentTransactions.GroupBy(x => new { x.Date, x.Amount });
-            var etGroups = existingTransactions.GroupBy(x => new { x.Date, x.Amount }).ToDictionary(x => x.Key);
+            var ctGroups = currentTransactions.GroupBy(x => new {x.Date, x.Amount});
+            var etGroups = existingTransactions.GroupBy(x => new {x.Date, x.Amount}).ToDictionary(x => x.Key);
 
             foreach (var ctGroup in ctGroups)
             {
@@ -49,8 +51,8 @@ namespace PocketBookSync.Commands
                 if (etGroup.Count() == ctGroup.Count())
                 {
                     continue;
-                }            
-            
+                }
+
                 // We have some new transactions!
                 if (ctGroup.Count() > etGroup.Count())
                 {
@@ -73,6 +75,7 @@ namespace PocketBookSync.Commands
 
             return newTransactions;
         }
+
         private static void Log(string message)
         {
             Console.WriteLine($"Synchronizer:       {message}");

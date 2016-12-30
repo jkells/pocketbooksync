@@ -32,7 +32,7 @@ namespace PocketBookSync.PocketBook
                     await writer.WriteAsync('P');
                     await writer.WriteLineAsync(transaction.Description);
                     await writer.WriteLineAsync("^");
-                }                
+                }
             }
             stream.Seek(0, SeekOrigin.Begin);
             return stream;

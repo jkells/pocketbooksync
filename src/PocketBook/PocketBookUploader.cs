@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
-using Microsoft.EntityFrameworkCore;
 using PocketBookSync.Data;
 
 namespace PocketBookSync.PocketBook
@@ -21,7 +19,7 @@ namespace PocketBookSync.PocketBook
         private readonly AppDbContext _db;
 
         private HttpClient _httpClient;
-        private bool _loggedIn;        
+        private bool _loggedIn;
 
         public PocketBookUploader(AppDbContext db)
         {

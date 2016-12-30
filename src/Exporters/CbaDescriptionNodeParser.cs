@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Text.RegularExpressions;
 using HtmlAgilityPack;
 
@@ -19,7 +18,7 @@ namespace PocketBookSync.Exporters
 
             descriptionNode.SelectNodes(".//i")?.FirstOrDefault()?.Remove();
             descriptionNode.InnerHtml = descriptionNode.InnerHtml.Replace("<br>", " ");
-            
+
             Description = Regex.Replace(descriptionNode.InnerText, @"[\s-]+", " ",
                 RegexOptions.Multiline);
             Description = Description.Replace("\r", "").Replace("\n", " ");
