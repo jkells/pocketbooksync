@@ -5,7 +5,7 @@ What is it?
 -----------
 A command line tool for synchronizing transactions from bank accounts to PocketBook. **Only the Commonwealth Bank is currently supported, I would accept pull requests for adding new banks.**
 
-This should build and run on Windows / OSX or Linux but has only been tested on Windows.
+This should build and run on Windows, OSX or Linux but has only been tested on Windows.
 
 Motivation
 ----------
