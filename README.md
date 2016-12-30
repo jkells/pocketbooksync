@@ -58,4 +58,4 @@ pocketbooksync sync
 
 Thanks
 ------
-Thanks to PocketBook [www.getpocketbook.com](www.getpocketbook.com) for creating such a great budgeting app!
+Thanks to PocketBook [www.getpocketbook.com](https://www.getpocketbook.com) for creating such a great budgeting app!
