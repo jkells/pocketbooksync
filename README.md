@@ -13,12 +13,11 @@ I really liked the look of PocketBook (getpocketbook.com) so decided to create a
 
 Should you use this?
 --------------------
-If you're not able to read and build the code yourself possibly not. *You're trusting this application with your credentials instead of PocketBook.* PocketBook have hundreds of thousands of customers trusting them with their credentials, their buisness is is built on the trust they have with their customers.
+If you're not able to read and build the code yourself possibly not. **You're trusting this application with your credentials instead of PocketBook.** PocketBook have hundreds of thousands of customers trusting them with their credentials, their buisness is is built on the trust they have with their customers.
 
 How are my credentials secured
 ------------------------------
-Your credentials are stored in an SQLIte database in your user profile. They're encrypted with the Windows Data Protection API which means they're encrypted so only your user account can read them. If someone were to steal the database from your computer they wouldn't be able to retrieve your credentials.
-
+Your credentials are stored in an SQLite database under your user profile. They're encrypted at rest with the Microsoft Data Protection API, meaning they can only be decrypted by your user account.
 
 Usage
 -----
