@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 using HtmlAgilityPack;
+using System.Linq;
 
 namespace PocketBookSync.Exporters
 {

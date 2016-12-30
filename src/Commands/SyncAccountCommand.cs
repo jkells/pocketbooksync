@@ -3,6 +3,7 @@ using Microsoft.Extensions.CommandLineUtils;
 using PocketBookSync.Data;
 using PocketBookSync.Exporters;
 using PocketBookSync.PocketBook;
+using System.Linq;
 
 namespace PocketBookSync.Commands
 {

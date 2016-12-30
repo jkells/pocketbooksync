@@ -6,6 +6,8 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
 using PocketBookSync.Data;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace PocketBookSync.PocketBook
 {

@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.Extensions.CommandLineUtils;
 using PocketBookSync.Data;
+using System.Linq;
 
 namespace PocketBookSync.Commands
 {

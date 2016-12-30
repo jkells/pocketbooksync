@@ -3,6 +3,7 @@ using PocketBookSync.Commands;
 using PocketBookSync.Data;
 using Xunit;
 using Enumerable = System.Linq.Enumerable;
+using System.Linq;
 
 namespace PocketBookSync.tests
 {
