@@ -13,6 +13,8 @@ There are a bunch of cloud based personal finance applications available now but
 
 I really liked the look of PocketBook [www.getpocketbook.com](https://www.getpocketbook.com) so decided to create a tool that would synchronize my transactions without needing to hand over my internet banking credentials. Hopefully one day my bank will provide an API so this tool isn't necessary.
 
+Another neat feature is that I can include pending transactions, something PocketBook doesn't normally support.
+
 Should you use this?
 --------------------
 If you're not able to read and build the code yourself possibly not. **You're trusting this application with your credentials instead of PocketBook.** PocketBook have hundreds of thousands of customers trusting them with their credentials, their buisness is is built on the trust they have with their customers.
