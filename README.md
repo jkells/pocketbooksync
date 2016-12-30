@@ -37,3 +37,22 @@ Commands:
 
 Use " [command] --help" for more information about a command.
 ```
+
+Quick Start
+-----------
+* Setup your PocketBook credentials, you will be prompted to enter your password.
+```
+pocketbooksync configure --username john@example.com
+```
+* Add an account to PocketBook and find the account number.
+You can find your PocketBook account number by adding a manual bank account to PocketBook, then select Transactions followed by your account. The account number will be in the URL.
+* Add your bank account to pocketbooksync, you will be prompted for your netbank password.
+```
+pocketbooksync add-account --client-number 123456 --account-reference MasterCard --pocket-book-account 100000 --type cba
+```
+* Synchronize your transactions!
+```
+pocketbooksync sync
+```
+* Create a scheduled task to run the sync command once a day.
+
